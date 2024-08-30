@@ -11,6 +11,9 @@ import mongoose from "mongoose";
 import { authenticateUser } from "./middleware/authMiddleware.js";
 import cookieParser from "cookie-parser";
 
+import helmet from 'helmet';
+import mongoSanitize from 'express-mongo-sanitize';
+
 import { fileURLToPath } from "url";
 import path, { dirname } from "path";
 
@@ -26,6 +29,9 @@ const app = express();
 const __dirname = dirname(fileURLToPath(import.meta.url));
 app.use(express.static(path.resolve(__dirname, "./client/dist")));
 
+app.use(helmet());
+app.use(mongoSanitize());
+
 app.use(express.json());
 app.use(cookieParser());
 app.use("/api/v1/jobs", authenticateUser, jobRouter);
@@ -39,10 +45,6 @@ app.get("*", (req, res) => {
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("dev"));
 }
-
-app.get("/api/v1/test", (req, res) => {
-  res.json({ msg: "test route" });
-})
 
 app.use("*", (req, res) => {
 	res.status(404).json({ msg: "not found" });

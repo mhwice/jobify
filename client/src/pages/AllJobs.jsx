@@ -3,27 +3,41 @@ import { JobsContainer, SearchContainer } from '../components';
 import customFetch from '../utils/customFetch';
 import { useLoaderData } from 'react-router-dom';
 import { useContext, createContext } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
-export const loader = async ({ request }) => {
+const allJobsQuery = (params) => {
+  const { search, jobStatus, jobType, sort, page } = params;
+  return {
+    queryKey: [
+      "jobs", 
+      search ?? "",
+      jobStatus ?? "all",
+      jobType ?? "all",
+      sort ?? "newest",
+      page ?? 1
+    ],
+    queryFn: async () => {
+      const { data } = await customFetch.get("/jobs", { params });
+      return data;
+    }
+  }
+}
+
+export const loader = (queryClient) => async ({ request }) => {
   // Converts query params from the url into an object of key/value pairs
   const params = Object.fromEntries([...new URL(request.url).searchParams.entries()]);
 
-  try {
-    // We can pass the params object to Axios and it will create the query params url
-    // for the api call
-    const { data } = await customFetch.get("/jobs", { params });
-    return { data, searchValues: {...params} };
-  } catch (error) {
-    toast.error(error?.response?.data?.msg);
-    return error;
-  }
+  await queryClient.ensureQueryData(allJobsQuery(params));
+  
+  return { searchValues: {...params} };
 }
 
 const AllJobsContext = createContext();
 
 const AllJobs = () => {
 
-  const { data, searchValues } = useLoaderData();
+  const { searchValues } = useLoaderData();
+  const { data } = useQuery(allJobsQuery(searchValues));
 
   return (
     <AllJobsContext.Provider value={{ data, searchValues }}>
