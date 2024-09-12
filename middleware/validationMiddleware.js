@@ -7,7 +7,7 @@ import User from "../models/UserModel.js";
 
 const withValidationErrors = (validateValues) => {
   return [
-    validateValues, 
+    validateValues,
     (req, res, next)	 => {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -16,10 +16,10 @@ const withValidationErrors = (validateValues) => {
         if (errorMessages[0].startsWith("not authorized")) throw new UnauthorizedError(`not authorized`);
         throw new BadRequestError(errorMessages);
       }
-      
+
       next();
     }
-  ]; 
+  ];
 }
 
 export const validateJobInput = withValidationErrors([
@@ -48,7 +48,7 @@ export const validateRegisterInput = withValidationErrors([
   body("name").notEmpty().withMessage("name is required"),
   body("email")
     .notEmpty()
-    .withMessage("email is required")
+   . withMessage("email is required")
     .isEmail()
     .withMessage("invalid email format")
     .custom(async (value) => {
